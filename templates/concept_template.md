@@ -31,6 +31,9 @@
 ### Structural Diagram / Conceptual Model Placeholder
 [Insert ASCII or link to an architectural block diagram showing the flow of data/requests]
 
+### Data Layout & Wire Protocol
+* **Wire Format:** [e.g., Protobuf, JSON, Avro - why this format?]
+* **Storage Engine Type:** [e.g., LSM-Tree, B-Tree, In-Memory - why this footprint?]
 
 ---
 
@@ -38,6 +41,13 @@
 * **Operational Overhead:** [How hard is this to monitor, maintain, deploy, and debug?]
 * **Performance Impacts:** [Does this introduce extra network hops, serialization overhead, or CPU/memory pressure?]
 * **Data Integrity & Consistency:** [Are there race conditions, data divergence risks, or recovery complexities?]
+* **Blast Radius:** [If this component experiences a total blackout, what *adjacent* systems go down, and what degrades gracefully?]
+* **Financial Footprint:** [Does this architecture incur heavy cross-AZ network costs or expensive compute scaling?]
+
+## Failure Blast Radius & Verification
+* **Failure Modes & Cascading Effects:** [If this component experiences a total blackout, network partition, or memory leak, what adjacent systems go down? Does it cause a cascading failure or degrade gracefully?]
+* **Degradation Strategy:** [Does the system fall back to a cached value, return an empty response, or shed load entirely?]
+* **Verification & Testing:** [How do you prove this works under pressure? e.g., Chaos Engineering/Gremlin, Jepsen testing for consistency, distributed tracing injection.]
 
 ---
 

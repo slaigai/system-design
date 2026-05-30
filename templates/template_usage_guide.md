@@ -34,6 +34,7 @@ This guide explains how to effectively use the **System Design Concept Template*
     * What happens if that component drops packets or goes offline?
     * Does it become a single point of failure (SPOF)?
     * How do you debug a request that spans this infrastructure?
+    * The 5-Year Rule: When you document an example architecture or a concept, ask yourself: "If our data volume grows by 50x over 5 years, where will this concept break first? RAM, CPU, Network I/O, or Disk IOPS?" Document that exact bottleneck under your trade-offs.
 
 ### 6. Real-World Examples & Case Studies
 * **Goal:** Ground your knowledge in real industry execution.
