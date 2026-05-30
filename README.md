@@ -14,7 +14,7 @@ A structured, sequential index of foundational building blocks and complete syst
 ## Phase 1: Architectural Primitives (Building Blocks)
 
 ### 1. System Design Fundamentals & Core Metrics
-* Vertical vs. Horizontal Scaling 🔥
+* [Vertical vs. Horizontal Scaling](primitives/vertical_vs_horizontal_scaling.md) 🔥
 * Performance vs. Scalability
 * Latency vs. Throughput vs. Bandwidth
 * Availability vs. Reliability
