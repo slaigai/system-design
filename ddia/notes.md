@@ -1,14 +1,77 @@
 # Preface
 
 # 1. Trade-Offs in Data Systems Architecture
+- data intensive means an app where data management is one of the primary challenges in developing the app
+- in contrast, compute intensive is parallelizing large computation
+- data intensive apps worry more about storing and processing large volumes of data, managing changes to the data, and ensuring consistency in the face of failures and concurrency, and making services highly available
+- different people need data for different reasons, one of the key challenges in designing
+- focus on understanding choices and trade offs
+
 ## Operational Versus Analytical Systems
-## Characterizing Transaction Processing and Analytics
-## Data Warehousing
-## Systems of Record and Derived Data
+- Backend engineers, business analysts, data scientists
+- Operational and analytical systems are often kept separate
+- New role data engineers have emerged to integrate the operational and analytical systems and who take responsibility for the organization’s data infrastructure more widely
+
+### Characterizing Transaction Processing and Analytics
+- transaction: group of reads and writes that form a logical unit
+  - Main read pattern: Point queries (fetch individual records by key)
+  - Main write pattern: Create, update, and delete individual records
+  - Human user example: End user of web/mobile application
+  - Machine use example: Checking if an action is authorized
+  - Type of queries: Fixed, predefined by application
+  - Query volume: Lots of small queries
+  - Data represents: Latest state of data (current point in time)
+  - Dataset size: Gigabytes to terabytes
+- analytics has a different access pattern, usually processes large number of records for aggregate metrics
+  - Main read pattern: Aggregate over large number of records
+  - Main write pattern: Bulk import (ETL) or event stream
+  - Human user example: Internal analyst, for decision support
+  - Machine use example: Detecting fraud/abuse patterns
+  - Type of queries: Arbitrary, ad-hoc exploration by analysts
+  - Query volume: Few queries, each is complex
+  - Data represents: History of events that happened over time
+  - Dataset size: Terabytes to petabytes
+- OLTP: usually fixed queries
+- OLAP: usually custom queries
+
+### Data Warehousing
+- Data warehouse is a separate database (separate from OLTP) where analysts can query to their heart's content
+- OLTP DBs usually operated by individual teams in silos, not ideal for analysts
+  - Data is spread across multiple sources, difficult to combine in single query
+  - OLTP data layouts not well suited for OLAP
+  - Analytical queries expensive to run on OLTP, causing performance hit
+  - OLTP DB may be on a separate network
+- data warehouse contains read only data optimized for analysis
+- OLTP data -> ETL -> data warehouse
+- enterprise usually has one data warehouse and many separate smaller OLTP DBs
+- hybrid transactional/analytical processing (HTAP) exists but internally made of OLTP and analytical system. Still common to separate OLTP from analytical
+- Data warehouse is often relational, queried through SQL
+- Not well suited for feature engineering, turning data into a matrix. Use dataframes instead
+- Data lake: contains files without any particular format, model, or schema. Can use object stores as backing instead of expensive relational DB
+- ETL processes have been generalized to data pipelines
+- Often ETL flows OLTP -> data lake -> data warehouse
+  - Raw data is better, consumers can transform data into whatever form they like
+- Data increasingly made available as streams of events (in addition to files and relational tables)
+- Reverse ETL: outputs of analytical systems made available in OLTP
+
+### Systems of Record and Derived Data
+- system of record: source of truth. canonical data. typically normalized. system of record is the correct version of data if there is any discrepancy with other data.
+- derived data: data transformed from another source. if derived data is lost, re-transform it. e.g. a cache
+  - is redundant by nature
+  - is essential for performance, copying the data is a trade off
+- analytical systems are usually derived data
+- By being clear about which data is derived from which other data, you can bring clarity to an otherwise confusing system architecture.
+- when data in one system is derived from another, need a way to update derived data when system of record changes.
+  - most dbs assume you're using one db system, hard to integrate between multiple systems
+  - data pipelines used to compose multiple data systems to achieve what one alone cant
+
 ## Cloud Versus Self-Hosting
-## Pros and Cons of Cloud Services
-## Cloud Native System Architecture
-## Operations in the Cloud Era
+
+
+### Pros and Cons of Cloud Services
+### Cloud Native System Architecture
+### Operations in the Cloud Era
+
 ## Distributed Versus Single-Node Systems
 ## Problems with Distributed Systems
 ## Microservices and Serverless
