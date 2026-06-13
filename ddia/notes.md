@@ -66,11 +66,37 @@
   - data pipelines used to compose multiple data systems to achieve what one alone cant
 
 ## Cloud Versus Self-Hosting
-
+- build or buy
+- usually about business priorities
+  - if core competency, build
+  - if not core competency, buy
 
 ### Pros and Cons of Cloud Services
+- cloud saves time and money to move fast without spinning up own ops for infra
+- less staff
+
 ### Cloud Native System Architecture
+- cloud native architecture: arch designed to take advantage of cloud services
+- some benefits of designing for cloud native: performance, fast recovery, scaling to match load, 
+- most evident when looking at managed cloud native DBs (compared to self hosted)
+  - OLTP: postgres VS spanner
+  - OLAP: spark VS bigquery
+- virtual disk: mimics a file system for durability while allowing ephermal storage attachments
+- cloud generally separates storage from compute, incurs network transfer cost
+- multitenant: many customer's data on one machine. shared hardware makes for better utilization, easier scalability, easier management
+  - requires careful engineering to isolate customers from each other for security and correctness
+
 ### Operations in the Cloud Era
+- traditionally DBAs and sysadmins handled data infra
+- modern devs handle these systems
+- devops and sre focus on
+  - set up automation for repeatable processes
+  - use ephemeral services rather than long-running servers
+  - enabling frequent application updates
+  - learning from incidents
+  - preserving org knowledge
+- capacity planning -> financial planning. performance optimization -> cost optimization
+- also have to plan for quota limits
 
 ## Distributed Versus Single-Node Systems
 ## Problems with Distributed Systems
