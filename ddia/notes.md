@@ -99,9 +99,59 @@
 - also have to plan for quota limits
 
 ## Distributed Versus Single-Node Systems
-## Problems with Distributed Systems
-## Microservices and Serverless
-## Cloud Computing Versus Supercomputing
+- distributed system: a system of several machines communicating in a network. each process in a distributed system is called a node
+- distributed systems used for:
+  - inherently distributed: two people communicating across two devices is unavoidably distributed
+  - requests between cloud services: data from one service is transferred to another
+  - fault tolerance / high availability: use multiple machines for redundancy
+  - scalability: data volume or computing requirements grow beyond what a single machine can handle, spread the load across multiple machines
+  - latency: place servers close to users to minimize network latency
+  - elasticity: can scale up or down depending on load. scalability is "spread the load", elasticity is "load adjusts automatically"
+  - hardware tuning: object storage requires little CPU, some workloads require GPU, dont all have to be on the same hardware
+  - legal compliance: data residency laws in some countries require data to be processed geographically within the country
+  - sustainability: run where/when electricity is cheap
+
+### Problems with Distributed Systems
+- every request over network deals with possibility of failure
+  - network interruption
+  - service unavailable
+  - request time out
+  - retrying might not be safe, what do?
+- consider bringing computation to the machines that already have the data to avoid network transfer
+- more nodes not always better, overhead of concurrency may cost more than single threaded computation
+- troubleshooting a distributed system is hard
+  - where is the problem?
+  - observability: collecting data about the system execution
+  - tracing: which client called which server
+- maintaining consistency across multiple databases is the application's problem
+- distributed transactions: can be used but rare because services generally want to be independent and most dbs dont support it
+- single-machine much simpler than distributed
+
+### Microservices and Serverless
+- SOA: service oriented architecture
+- microservices: a service with one well-defined purpose
+- can decompose a system into multiple services
+- advantages of services
+  - each service can be updated independently, reducing coordination across teams
+  - each service assigned hardware resources it needs
+  - hiding implementation behind API means decoupling with clients, can change implementation
+- usually services have their own DB
+  - effectively makes DB part of multiple service's API, difficult to change
+  - one service's queries can affect another's
+- many services = complexity
+  - testing requires other services
+  - delayed breaking changes, discovered during integration testing
+- Microservices are primarily a technical solution to a people problem: allowing different teams to make progress independently without having to coordinate with each other.
+- serverless / function as a service: cloud provider manages starting and stopping infra depending on load
+  - only pay for time spent executing
+
+### Cloud Computing Versus Supercomputing
+- Supercomputers are typically used for computationally intensive scientific computing tasks
+- typically runs large batch jobs that checkpoint the state of their computation to disk from time to time
+- Supercomputer nodes typically communicate through shared memory and RDMA, which support high bandwidth and low latency but assume a high level of trust among the users of the system
+- Supercomputers often use specialized network topologies, such as multidimensional meshes and toruses which yield better performance for HPC workloads with known communication patterns
+- supercomputers generally assume that all their nodes are close together
+
 ## Data Systems, Law, and Society
 ## Summary
 
