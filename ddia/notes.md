@@ -153,7 +153,18 @@
 - supercomputers generally assume that all their nodes are close together
 
 ## Data Systems, Law, and Society
+- GDPR grants individuals the right to have their data erased on request
+- many data systems rely on immutable constructs such as append-only logs as part of their design.
+- How can we ensure deletion of some data in the middle of a file that is supposed to be immutable?
+- How do we handle deletion of data that has been incorporated into derived datasets
+- risk of legal costs and fines if the storage and processing of the data is found not to be compliant with the law
+- data minimization: keep only what is necessary, cost-benefit
+
 ## Summary
+- theme of this chapter: understand trade offs
+- OLTP vs OLAP: manage data differently, serve different audiences
+- data warehouse (ready for analytics) and data lake (raw files)
+- cloud is intrinsically distributed, comes with the engineering challenges of distributed systems
 
 # 2. Defining Nonfunctional Requirements
 ## Case Study: Social Network Home Timelines
