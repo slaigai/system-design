@@ -407,12 +407,120 @@
   - maintainability
 
 # 3. Data Models and Query Languages
+- The limits of my language mean the limits of my world
+- Meta point: learning the language of system design, reliability, architecture, etc. expands the toolkit
+- Data models = how we think about the problem
+- most apps are one data model layered on top of another
+- each layer key question: how is it represented in terms of the next lower layer
+- example of app layers
+  - app layer: model people in objects/data structures, apis to manipulate them
+  - data structures: expressed in general data model like json, or tables in DB, or vertices in graphs
+  - db represents the data in disk layout or on a network
+  - hardware represents memory or storage in voltage, current etc
+- In general, each layer hides complexity of layers below it by providing a clean data model
+- allows different groups of people to work effectively at different layers
+- some types of data are easy to express in one model and awkward to express in other models
+- some models
+  - relational
+  - document
+  - graph
+  - event sourcing
+  - dataframes
+- declarative query languages: specify the pattern of data you want but not how to achieve it. DB system handles forming a plan and executing
+- algorithm: operations in order to perform a task
+- declarative query language generally more concise and easier to write than algorithms
+- declarative hides implementation details of the query engine
+
 ## Relational Versus Document Models
-## The Object-Relational Mismatch
-## Normalization, Denormalization, and Joins
-## Many-to-One and Many-to-Many Relationships
-## Stars and Snowflakes: Schemas for Analytics
-## When to Use Which Model
+- SQL is best known example of relational model
+- relations (called tables in SQL): unordered collection of tuples (rows in SQL)
+- RDBMS: relational database management systems
+- Early alternatives like the network model and hierarchical model existed but fell out of favor for relational models
+- object storage also came and went
+- XML databases came and was only niche
+- SQL has grown to incorporate the others (XML, JSON, GRAPH)
+- NoSQL: loos set of ideas around new data models, schema flexibility, scalability
+- The term NoSQL has faded but the principles/ideas are still very influential
+- document model:
+  - one lasting NoSQL data model
+  - usually represented as JSON
+  - popularized by MongoDB and Couchbase
+  - most relational DBs now support JSON
+  - JSON more flexible than rigid fixed schema
+
+### The Object-Relational Mismatch
+- If most app data is object oriented, there's an awkward translation layer to SQL relational model.
+- Impedance mismatch:
+  - the friction that occurs when translating data between differing architectural paradigms. It primarily refers to the structural clash between object-oriented programming languages and relational database (SQL) tables
+  - borrowed from electronics
+  - when connecting one circuit to another, impedance mismatch leads trouble
+- object relational mapping (ORM):
+  - mapping between object model and relational model
+  - frameworks often handle boilerplate code of translating between models
+  - attempt to abstract the translation but often leak underlying details that developers still need to think about, but now with indirection
+  - generally only for OLTP app dev
+  - generally only work with relational OLTP DBs
+  - Customizing ORM behavior can be complex if more control is wanted
+  - make easy to write inefficient queries
+  - N+1 query problem:
+    - one query results in many other queries
+    - e.g. display list of user comments on a page. one query returns N comments each with ID of its author. Need to show the name of each author so need to look up the IDs in the user's table.
+    - using SQL, might join efficiently. using ORM, might come up with a dumb algorithm and cause many queries by accident
+  - advantages include easy handling of common simple repetitive tasks, cache results, manage schema migrations
+- Not all data lends itself well to a relational representation
+- a JSON document more naturally represents an object structure than relational
+- JSON model reduced impedance mismatch between app and storage
+- lack of schema is an advantage sometimes, flexible. but comes with problems (e.g. data duplication)
+- json represntation has better locality than multi-table schema. no need to join multiple tables to fetch one object record
+- locality: all the data is in one place. trade off: duplication
+- query is both faster and simpler
+- one-to-few:
+  - sometimes one-to-many relation actually only maps to a few items, well-suited for document model
+  - sometimes one-to-many relation maps to many items. well-suited for relational model. document can get too big
+
+### Normalization, Denormalization, and Joins
+- some advantages of having a standardized list of things:
+  - consistent style and spelling
+  - avoid ambiguity between similar strings
+  - easily updated across system
+  - localization support
+  - better search
+- normalization: giving an ID to pieces of data that share the same meaning
+  - ID has no meaning to humans, never needs to change
+  - stuff that's meaningful to humans may need to change at any time
+  - if the info is dupliucated, all copies must be updated. messy, imposes risk
+  - downside: need to look up ID every time to resolve.
+- denormalization: storing the thing directly
+- document DBs can store both normalized and denormalized data
+  - often associated with denormalization because JSON model makes it easier to store stuff denormalized
+  - weak support for joins
+  - in mongodb, possible to join using a lookup on json fields
+- not a black and white choice between fully normalized or denormalized
+  - usually have a mixture of them
+  - decide carefully what needs to be normalized to keep things consistent
+  - usually normalize if we want to reference one standard central instance of a thing over and over without needing to change it everywhere in case it needs to change
+- normalized data usually faster to write (exactly one copy) but slower to query (requires joins)
+- denormalized data usually more expensive to write (more copies to create) but faster to query (data is localized)
+- not all DBs offer atomicity across multiple documents, may lost consistency in document DB for certain operations
+- noramlization often better for OLTP systems
+  - reads/updates need to be fast
+- denormalization usually better for analytical systems
+  - bulk updates, performance of read-only queries is dominant
+- small to moderate scale systems normalized usually best to avoid multiple copies of inconsistent data and join performance is acceptable
+- cost of joins in large scale systems may be problematic
+- hydrating: process of looking up human readable info using the ID. basically a join in application code
+- normalize fast-changing data so latest state can be looked up without expensive writes (updating copies) when needed
+- joins are not always bad for performance
+- most scalable approach may involve denormalizing some things, normalizing others
+- need to carefully consider how information changes and the cost of reads and writes (can be dominated by outliers)
+- norm/denorm are not inherently good or bad, simply represent tradeoffs in performance of reads/writes and implementation effort
+
+### Many-to-One and Many-to-Many Relationships
+- 
+
+### Stars and Snowflakes: Schemas for Analytics
+### When to Use Which Model
+
 ## Graph-Like Data Models
 ## Property Graphs
 ## The Cypher Query Language
