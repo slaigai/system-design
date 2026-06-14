@@ -294,9 +294,59 @@
   - may uncover need to change business priorities, invest in certain areas, change incentives, or bring another systemic issue to management's attention
 
 ## Scalability
-## Understanding Load
-## Shared-Memory, Shared-Disk, and Shared-Nothing Architectures
-## Principles for Scalability
+- system working today may degrade tomorrow as load grows
+- scalability: system's ability to cope with increased load
+- sometimes counterproductive to worry about scale if another conflicting factor has a much higher priority
+  - best case: premature optimization wasted effort
+  - worst case: vendor lockin with baggage and slows velocity
+- meaningless to say "X is scalable" or "Y doesn't scale". instead consider questions like:
+  - if the system grows in a particular way, what are our options for coping with the growth?
+  - how can we add computing resources to handle the additional load?
+  - based on current growth projections, when will we hit the limits of our current architecture?
+
+### Understanding Load
+- load: throughput, rate, number of something per time. sometimes peak of a number (e.g. number of simultaneously active users)
+  - number of requests per second
+  - gigs of data per hour
+  - number of checkouts per hour
+- load can mean access pattern (ratio of reads vs writes), cache hit rate, number of insights per user
+- maybe you care about average, maybe care about extreme cases. depends
+- investigate what happens when load increases
+  - When you increase the load in a certain way and keep the system resources (CPUs, memory, network bandwidth, etc.) unchanged, how is the performance of your system affected?
+  - When you increase the load in a certain way, how much do you need to increase the resources if you want to keep performance unchanged?
+- Goal is usually keep the performance within SLAs while minimizing cost of system
+- linear scalability: doubling resources leads to handling twice the load
+- sublinear scalability is amazing
+- typically, superlinear scaling. cost grows faster than linearly
+
+### Shared-Memory, Shared-Disk, and Shared-Nothing Architectures
+- vertical scaling, scaling up: beefier machine
+- shared memory architecture: bunch of threads sharing the same memory
+  - high end machine with more cores costs much more than linear
+  - overhead means performance scales sublinearly
+- shared-disk architecture: bunch of machines share disk
+  - network-attached storage: fast network shared storage
+  - storage area network: same ^
+  - usually used for on prem
+  - contention, overhead of locking hampers scalability
+- shared-nothing architecture, horizontal scaling, scaling out
+  - each node has its own CPU, RAM, disk
+  - software-level coordination via conventional network
+  - can often scale linearly
+  - can use whatever hardware gives best price/performance ratio
+  - can adjust hardware resources as load changes
+  - can achieve greater fault tolerance (distribute across datacenters and regions)
+  - downside is requires explicit sharding, incurs complexity
+
+### Principles for Scalability
+- no such thing as a one-size fits all solution
+- an architecture suitable for one level of load is unlikely to cope with 10x a load
+- needs of application are likely to evolve so not worth planning more than 1 order of magnitude in advance
+- A good general principle for scalability is to break a system into smaller components that can operate largely independently from one another
+- The challenge lies in knowing where to draw the line between things that should be together and things that should be apart
+- Another good principle is not to make things more complicated than necessary. If a single-machine database will do the job, it’s probably preferable to a complicated distributed setup
+- Autoscaling systems (which automatically add or remove resources in response to demand) are cool, but if your load is fairly predictable, a manually scaled system may have fewer operational surprises
+
 ## Maintainability
 ## Operability: Making Life Easy for Operations
 ## Simplicity: Managing Complexity
