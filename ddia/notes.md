@@ -167,13 +167,65 @@
 - cloud is intrinsically distributed, comes with the engineering challenges of distributed systems
 
 # 2. Defining Nonfunctional Requirements
+- performance, reliability, scalability, maintainability
+
 ## Case Study: Social Network Home Timelines
-## Representing Users, Posts, and Follows
-## Materializing and Updating Timelines
+### Representing Users, Posts, and Follows
+### Materializing and Updating Timelines
+- fan-out: when one request results in several downstream requests
+- for the twitter/X case, timelines can be served from cache, eventually updated
+- materialization: precomputing and updating the results of a query
+- materialized view: cache of precomputed results at the cost of more writes
+- what about users who follow many accounts?
+  - would naively write many times to their timeline
+  - okay to sample posts because user is probably not reading all of them from all accounts they're following. dropping some writes is okay
+- what about users with many followers?
+  - would naively need to write to many other account timelines
+  - dropping writes is not okay, maybe they're a celebrity
+  - can store celebrity posts separately and merge them with timelines when they're viewed
+
 ## Describing Performance
-## Latency and Response Time
-## Average, Median, and Percentiles
-## Use of Response Time Metrics
+- Performance usually focuses on response time and throughput
+  - response time: elapsed time from request to response
+  - throughput: rate of requests, volume flow rate
+- queueing: when load increases, system gets heavily loaded and throughput goes down, requests take longer to process. basically backing up
+- retry storm: latency increases until clients time out. clients all retry at once, making the problem worse
+- metastable failure: system degrades due to a transient stressor and remains in a severely degraded state. unable to recover without external intervention
+  - technically up but effectively down
+  - positive feedback loop keeps it degraded
+  - common causes: retry storm, cache miss cascades, garbage collection overload
+  - Use circuit breakers and bulkheads to stop cascading failures from spreading across the architecture
+  - load shedding: server can proactively start rejecting requests
+  - backpressure: send back responses telling clients to slow down
+  - Implement exponential backoff and jitter into client and service retries to prevent retry storms and work amplification
+  - Avoid over-optimizing specific pathways that, when removed, leave the system unable to handle the standard workload
+  - Proactively monitor the rate of increase in queue lengths rather than just tracking CPU or memory spikes
+- A system is scalable if its max throughput can be significantly increased by adding compute resources
+
+### Latency and Response Time
+- Specific terms
+  - response time: what the client sees, all delays incurred anywhere in the system
+  - service time: duration that the service is actively processing the request
+  - queueing delays: waiting for CPU, buffered before going over network, etc
+  - latency: time which a request is not actively being processed (i.e. latent), network latency is time spent traveling on the wire
+- head-of-line blocking: a small number of slow requests "hold up the line" for everyone, slows everything down hogging compute resources
+
+### Average, Median, and Percentiles
+- response times vary, need to think in distributions
+- median is a good for typical wait time
+- 95 and 99 percentiles are good for knowing how bad your outliers are
+- tail latencies: high response time percentiles
+  - usually the worst cases directly affecting user experience
+  - e.g. customers with slowest request may have the most data, may be customers who have made the most purchases
+- research data is contradictory on how much latency affects the user experience
+
+### Use of Response Time Metrics
+- it takes just one slow call (even in parallel) to make the whole user experience slow
+- tail latency amplification: The frustration of tail latency lies in probability compounding. If a user request fans out to 10 parallel services to compile a page, and each individual service has a perfectly fine 99% success rate of being fast, you might assume the overall system is safe. However, the probability of all 10 services returning quickly is 0.99^10 ≈ 0.904
+- service level objectives (SLOs): target metrics (e.g. < 200ms median and < 1000ms 99p and < 0.1% error rate)
+- service level agreements (SLAs): contract that specifies what happens if an SLOs is not met (e.g. customers get a refund)
+- in practice, defining good SLOs and SLAs is not straightforward
+
 ## Reliability and Fault Tolerance
 ## Fault Tolerance
 ## Hardware and Software Faults
