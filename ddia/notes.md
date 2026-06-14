@@ -688,10 +688,69 @@ RETURN person.name
   - relational, document, graph
 
 ## Event Sourcing and CQRS
-- 
+- data so far: queried in the same form it's written
+- in complex applications, sometimes difficult to find a single data representation that is able to satisfy all ways the data needs to be queried
+- beneficial to write data in one form and derive representations from it that are optimized for reads
+- event log: simplest, fastest, most expressive way of writing data
+  - every time you want to write some data, encode it as a self-contained string with timestamp and append it to a sequence of events
+  - events in this log are immutable, append only to the log
+- when events are appended to a log, we can update materialized views (aka projections, read models)
+- event sourcing: using events as the source of truth and expressing every state change as an event
+- CQRS command query responsibility segregation: the principle of separating read-optimized representations and deriving them from write-optimized representations
+- command: request from a user
+- fact: a command that has been executed and validated
+- event log should only contain valid events
+- consumer of an event log is not allowed to reject an event
+- when modeling data in event sourcing, convention is to name them as past tense because it's a record of a fact that has already happened
+- event sourcing and star schema both are collections of events that happened in the past but rows in a fact table all have the same schema
+- event sourcing may have many types, each with different properties
+- fact table is an unordered collection
+- event sourcing has order to the events
+- event sourcing and CQRS advantages
+  - events better communicate WHY something happened
+  - key principle of event sourcing: materialized views are derived from the event log in a reproducible way
+  - should always be able to delete and recompute the materialized view usng the same events and same code
+  - can have multiple materialized views optimized for particular queries
+  - can build new materialized views from the same event log
+  - if there are errors in events, later events can fix them (new update/delete events, original unmodified). consumers automatically take the updates
+  - event log is an audit
+  - event logs can handle higher write throughput than DBs because sequential access pattern
+  - downstream materialized views can catch up in their own time
+- event sourcing and CQRS downsides
+  - be careful if events rely on external information (like currency exchange rate). interpretation changes over time. Either include it in event or have a way to query historical exchange rate
+  - GDPR gets tricky, can store personal data outside of event or encrypt it with a key that you later delete (technique called crypto shredding)
+  - reprocessing events requires care if there are external side effects (e.g. dont want to resend confirmation emails every time you rebuild a materialized view)
+- can implement event sourcing on top of any DB but some systems specifically support this pattern (EventStoreDB, MartenDB, Axon Framework)
+- can also use message brokers like Kafka, stream processors keep materialized views up to date
+- the only important requirement: event storage systems must guarantee all materialized views process the events in exactly the order as they appear in the log
+  - in distributed systems, not so easy
 
 ## DataFrames, Matrices, and Arrays
+- so far, data models used for transactions and analytics
+- Dataframes and multidimensional arrays rare in OLTP but common in scientific context
+- dataframes are populat rools for data scientists prepping data for training ML models
+- similar to table with relational operations
+- instead, uses imperative commands to manipulate its structure
+- often have a broader API for manipulating data (like converting to sparse matrix)
+- matrix only contains numbers
+- one-hot-encoding: booleans
+- matrices used for linear algebra, which is basis for many ML algorithms
+- dataframes also popular in batch processing frameworks like spark and flink
+
 ## Summary
+- went through various models
+  - relational
+  - document
+  - graph
+  - dataframe
+- usually, one model can be emulated in terms of another model but only awkwardly
+- specialized DBs have been developed for each model
+- DBs been trending toward covering multiple models
+- covered event sourcing and CQRS
+- not covered
+  - sequence similary searches in large databases of strings
+  - ledgers like in financial industry
+  - full text search
 
 # 4. Storage and Retrieval
 ## Storage and Indexing for OLTP
