@@ -348,10 +348,63 @@
 - Autoscaling systems (which automatically add or remove resources in response to demand) are cool, but if your load is fairly predictable, a manually scaled system may have fewer operational surprises
 
 ## Maintainability
-## Operability: Making Life Easy for Operations
-## Simplicity: Managing Complexity
-## Evolvability: Making Change Easy
+- software itself does not suffer material fatigure
+  - requirements change
+  - constraints change
+  - environments change
+  - dependencies change
+  - bugs are introduced
+- majority of cost is ongoing maintenance
+- **Every system we create today will one day become a legacy system if it is valuable enough to survive for a long time.**
+- principles
+  - operability: make it easy for the org to keep the system running smoothly
+  - simplicity: make it easy for people to understand
+  - evolvability: make it easy for future changes
+
+### Operability: Making Life Easy for Operations
+- good operations can often work around the limitations of bad software
+- good software cannot run reliably with bad operations
+- more automation is not always better for ops
+  - requires higher skill to operate
+  - harder to deal with bad automation
+  - find the balance
+- good operability
+  - make routine tasks easy
+  - allow ops team to focus on high-value activities
+- data systems can make operable by:
+  - observing runtime behavior
+  - avoid SPOF
+  - provide good docs, simple, easy to understand, clear
+  - good defaults, override levers
+  - self-healing, give admins control when needed
+  - predictable behavior, minimize surprises
+
+### Simplicity: Managing Complexity
+- big ball of mud: software project mired in complexity
+- reducing complexity greatly improves maintainability
+- simplicity is a key goal od systems we design, lowers risks
+- no objective measure of simplicity
+- one approach
+  - essential complexity: inherent to the problem
+  - accidental complexity: limitations of our tooling
+  - not clear cut in practice
+- abstraction: one of the best tools for managing complexity
+  - reuse
+  - decoupling
+  - propagate quality improvements to consumers
+  - design patterns and DDD can help
+
+### Evolvability: Making Change Easy
+- new use cases, business priorities, etc change
+- ease of which you can modify a system to adapt to changing requriements
+- irreversibility is the enemy
+
 ## Summary
+- examined nonfunctional requirements
+  - performance
+  - reliability
+  - scalability
+  - maintainability
 
 # 3. Data Models and Query Languages
 ## Relational Versus Document Models
