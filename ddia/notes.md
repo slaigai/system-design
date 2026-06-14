@@ -589,12 +589,46 @@
   - convergence good, work best when both document and relational model combine in the same DB
 
 ## Graph-Like Data Models
-## Property Graphs
-## The Cypher Query Language
-## Graph Queries in SQL
-## Triple Stores and SPARQL
-## Datalog: Recursive Relational Queries
-## GraphQL
+- many-to-many relations are common in your data, can represent as graph
+- vertices (nodes, entities) and edges (relationships, arcs)
+- various representations
+  - adjacency list: each vertex stores IDs of its neighbors
+    - good for traversal
+  - adjacency matrix: 2D array, all possible relations are mapped, boolean true/false if relation exists
+    - good for machine learning where vectorization optimizes performance
+- graphs are not limited to homogeneous data
+  - e.g. facebook one big graph relates people, locations, events, comments, etc
+- various ways to structure/query data: property graph model, triple store model. some DBs support both
+- common query languages: Cypher, SPARQL, Datalog, GraphQL, SQL
+
+### Property Graphs
+- property graph:
+  - vertex
+    - unique ID
+    - label (string) describing the type of object the vertex represents
+    - outgoing edges
+    - incoming edges
+    - collection of properties (kv pairs)
+  - edge
+    - unique ID
+    - vertex where edge starts (tail vertex)
+    - vertex where edge ends (head vertex)
+    - label describing the kind of relationship between two vertices
+    - collection of properties (kv pairs)
+  - can think kind of like a relational DB with 2 tables, one for vertices, one for edges
+  - any vertex can have an edge connecting it with any other vertex, no restriction on what can be associated
+  - can efficiently find incoming/outgoing edges of any vertex, easily traverse the graph
+  - can store several kinds of information in one graph, still maintain clean data model
+  - A hypergraph is a generalization of a standard graph in which an edge (called a "hyperedge") can connect any number of vertices rather than exactly two. This allows it to model complex, many-to-many relationships that simple graphs cannot represent naturally
+- graphs highly flexible for data modeling
+- good for evolvability, esily extended
+
+### The Cypher Query Language
+### Graph Queries in SQL
+### Triple Stores and SPARQL
+### Datalog: Recursive Relational Queries
+### GraphQL
+
 ## Event Sourcing and CQRS
 ## DataFrames, Matrices, and Arrays
 ## Summary
