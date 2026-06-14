@@ -516,10 +516,77 @@
 - norm/denorm are not inherently good or bad, simply represent tradeoffs in performance of reads/writes and implementation effort
 
 ### Many-to-One and Many-to-Many Relationships
-- 
+- many-to-many often represented in associative tables or join tables
+- many-to-one and many-to-many relationships done easily fit in one json document
+  - better off normalized
+  - often better to represent relationships with IDs in document rather than the whole copy in there
+- many-to-many relationships often need to be queries in both directions
+  - denormalized approach can become inconsistent, relation stored in multiple places can get out of sync
+  - normalized approach is consistent, has one place where it's all captured
+  - secondary indexes: allow relationship to be efficiently queried in both directions
+- many document databases can create indexes on values inside a document
+- data warehouses usually relational
+  - widely used conventions for schemas: star, snowflake, dimensional modeling, one bug table (OBT)
+  - optimized for needs of business analysts
+  - ETL processes translate data from operational systems to the schema
 
 ### Stars and Snowflakes: Schemas for Analytics
+- star schema
+  - at center is a "fact table": each row repesents an event that occured at some time
+  - usually fact table captured as individual events because maximally flexible for analysis later
+  - can become huge, transactions table can be extremely large
+  - some foreign key references to dimension tables: lookup stuff
+  - queries often involve multiple joins
+- snowflake schema
+  - variation of star schema
+  - dimensions further broken down into subdimensions
+  - more normalized than star
+  - star often preferred because simpler to work with
+- tables in data warehouse are typically fairly wide
+  - fact tables often have hundreds of columns
+- star/snowflake usually consists of many many-to-one relationships
+- one big table (OBT): precompute some joins so all the common fields are in one table
+  - more storage space, quicker queries
+  - in data warehouse, OBT for denormalized data is often not a problem, data doesnt change much
+  - in OLTP, denormalized data is often a problem, data consistency problems and overhead of writes
+
 ### When to Use Which Model
+- document model
+  - schema flexibility
+  - better performance for locality
+  - lower impedance mismatch for object model in applications
+- relational model
+  - better support for joins
+  - better support for many-to-one and many-to-many relationships
+- if data in app has a document like structure (tree that's typically loaded all at once), use document model
+- shredding: splitting a document into multiple tables in a relational model
+  - can lead to cumbersome schemas if not the right fit
+- document model has limitations like harder to refer to some nested item in a list
+- document model supports custom user ordering of items, it's just a json array
+  - in relational, would need to use common tricks to keep order
+- most document DBs dont enforce a schema on documents
+  - downside: arbitrary keys and values can be added to a document
+  - clients have no guarantees as to what fields may exist
+  - document DBs are sometimes incorrectly called schemaless but code usually expects some schema
+- schema-on-read: structure of data is implicit, interpreted only when data is read
+  - similar to dynamic type checking (at runtime)
+- schema-on-write: schema is explicit, ensures all data conforms when written
+  - similar to static type checking (at compile)
+- no clear winner, useful for various use cases
+- migration would be harder for document DB if need to change a field because all apps need to change the way they interpret data. relational migrations easier, changes all at once
+- large migrations are a challenge no matter what
+- schema-on-read useful if items in a collection dont all have the same structure (heterogeneous)
+  - e.g. structure of data determined by external systems that we have no control over
+  - schema can hurt more than it helps, needs to keep changing
+- if whole document is usually needed, store in document, better locality better performance
+- wasteful if only need small part of a large document, store in relational and query when needed
+- some relational DBs offer locality controls, end up joining/grouping data into one table
+- query language varies across models too
+  - SQL often used for relational
+  - document can be varied: key-value, secondary indexes for queries inside documents
+  - document query language sometimes looks like json, matches structure
+- document and relational DBs grown similar over time
+  - convergence good, work best when both document and relational model combine in the same DB
 
 ## Graph-Like Data Models
 ## Property Graphs
