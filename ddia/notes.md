@@ -753,13 +753,81 @@ RETURN person.name
   - full text search
 
 # 4. Storage and Retrieval
+- fundamentally, DBs store and retrieve data
+- data model: the format of data
+- query language: interface for asking for data
+- this chapter from DBs POV: how it can store data and find it for you
+- app devs should know internals because we need to select a storage enginer that's appropriate for the app
+- to configure a storage engine well, need a rough idea of the storage engine under the hood
+- big difference between storage engines for OLTP and analytics
+- two families of OLTP
+  - log-structured: write immutable data files
+  - B-trees: udpate data in place
+  - both used for key-value storage and secondary indexes
+
 ## Storage and Indexing for OLTP
-## Log-Structured Storage
-## B-Trees
-## Comparing B-Trees and LSM-Trees
-## Multicolumn and Secondary Indexes
-## Storing Values Within the Index
-## Keeping Everything in Memory
+- index: used to efficiently find keys
+- idea: structure data in a certain way so it's faster to locate the data you want
+- indexes incur overhead to maintain on writes
+- important trade off: good indexes speed up queries at the cost of more disk space and slows down writes substantially
+- DBs dont usually index everything by default
+
+### Log-Structured Storage
+- index in log could look like a hash map in memory of all the offsets of each key
+- disadvantages
+  - log grows forever without way to reclaim space if old logs were overwritten
+  - hash map in memory needs to be rebuilt every restart of DB
+  - hash table must fit in memory
+  - range queries inefficient on a map
+- SSTable file format
+  - in practice, hash table not used often for DB indexes
+  - more common to keep data sorted by key
+  - Sorted Strings Table (SSTable)
+  - stores key value pairs sorted by key, each key appears once in the file
+  - can group keys into blocks, keep only first key of each block in memory
+    - this is a sparse index
+    - stored in a separate part of the SSTable (e.g. an immutable B-tree, trie, or other data structure)
+    - blocks are kept small (few KB), can be scanned quickly
+    - blocks can also be compressed to reduce disk space and improve IO speed
+- SSTable better for reads compared to append only log but worse for writes
+  - can't just append to end of log, need to write to B-tree, index, and block
+- log-structured approach: hybrid between append-only log and sorted file
+  - memtable: when write comes in, add it to in-memory ordered map data structure (e.g. red-black tree, skip list, trie)
+  - when memtable gets bigger past a threshold, write it to disk in sorted order as an SSTable file
+  - most recent new SSTable file is a segment of the DB, stored alongside older segments on diks
+  - old memtable's memory is freed when segment written to disk
+  - DB can write to new memtable while writing old memtable to disk
+  - to read, first try to read from memtable. if key not there, look in next older segmenet until key is found or reached oldest segment
+  - occaisionally run compaction in background to combine segment files, discard overwritten or deleted values
+    - merging works like mergesort but keep only latest key
+  - in case of crashes, a separate log is kept on disk where every write is immediately appended
+    - this log is not sorted by key, just a log of everything raw
+    - when memtable gets written to disk, part of the log can be discarded
+- to delete a record, must append a tombstone (tells merge process to discard previous values)
+- algorithm here ^ is what is used in RocksDB, Cassandra, ScyllaDB, HBase, all of which were inspired by google BigTable that introduced SStables and memtables
+  - originally the algorithm was published as Log-structured merge trees (LSM-trees)
+- LSM storage engines: storage engines based on the principle of merging and compacting sorted files
+  - segments are immutable
+  - merging done in background thread while reads continue to be served
+  - when merging is done, switch reading to the new segments and delete the old stuff
+- Segment files dont need to be stored on local disk, can be stored in external object storage (SlateDB and Delta Lake)
+- immutable segment files simplifies crash recovery
+  - if crash during merging or writing memtable, can  just delete the unfinished SSTable and start fresh
+- bloom filters: fast but approximate way to check if key appears in any SSTable
+  - hash the key, store in bitmap, check bitmap for existence
+  - if any bit is zero, key definitely doesnt exist
+  - if all bits are 1, key possibly exists (could be combination of keys, false positive)
+  - false positive probability depends on number of bits and number of keys
+- compaction strategies
+  - size-tiered compaction: newer smaller SSTables merged into older larger SSTables. high write throughput
+  - leveld compaction: keeps each level at a certain size. more efficient for reads, fewer SSTables to read
+
+### B-Trees
+### Comparing B-Trees and LSM-Trees
+### Multicolumn and Secondary Indexes
+### Storing Values Within the Index
+### Keeping Everything in Memory
+
 ## Data Storage for Analytics
 ## Cloud Data Warehouses
 ## Column-Oriented Storage
