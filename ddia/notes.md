@@ -624,12 +624,72 @@
 - good for evolvability, esily extended
 
 ### The Cypher Query Language
+- Cypher: Query language for propery graphs originally created for Neo4j graph DB
+- Later openCypher created
+- Cypher also supported by memgraph, KuzuDB, Amazon Neptune, Apage AGE (with storage in PostgreSQL)
+
+```cypher
+CREATE
+  (namerica :Location {name:'North America', type:'continent'}),
+  (usa :Location {name:'United States', type:'country' }),
+  (idaho :Location {name:'Idaho', type:'state' }),
+  (lucy :Person {name:'Lucy' }),
+  (idaho) -[:WITHIN ]-> (usa) -[:WITHIN]-> (namerica),
+  (lucy) -[:BORN_IN]-> (idaho)
+
+MATCH
+  (person) -[:BORN_IN]-> () -[:WITHIN*0..]-> (:Location {name:'United States'}),
+  (person) -[:LIVES_IN]-> () -[:WITHIN*0..]-> (:Location {name:'Europe'})
+RETURN person.name
+```
+
 ### Graph Queries in SQL
+- `:WITHIN*0..` means follow a `WITHIN` edge zero or more times
+- specifies a variable length traversal path
+- in relational DB, would need a bunch of joins
+- in relational, can use recursive common table expressions (`WITH RECURSIVE`)
+- super complicated and clumsy
+- 4 lines of cypher = 31 lines of SQL
+- data model and query language makes a huge difference
+- still havent considered handling cycles, BFS vs DFS,
+
 ### Triple Stores and SPARQL
+- triple store model: equivalent to property graph model using different words
+- stored in three part statements (subject, predicate, object)
+- turtle: language for encoding triples
+- resource description framework (RDF): data model for semantic web (encoded in XML)
+- SPARQL: language for triple stores using RDF data model
+  - Recursively named "SPARQL protocol and RDF query language"
+  - predates cypher, cypher borrows query patterns
+
 ### Datalog: Recursive Relational Queries
+- older than SPARQL and cypher
+- based on relational data model, not graph
+- recursive queries on graphs are a strength of datalog
+- datalog rows are called facts
+- datalog is a subset of prolog
+- based on building up rules one by one, and referencing them like recursive functions
+
 ### GraphQL
+- by design is more restrictive than others
+- intended for OLTP queries
+- purpose: allows client software (web, mobile) to request JSON with a particular structure containing necessary fields for rendering UI
+- allows devs to rapidly change queries in client code without changing server APIs
+- highly flexible, but has a cost
+- need tooling to convert queries into requests to internal services
+- auth, rate limiting, performance add concerns
+- intentionally limited because GraphQL queries come from untrusted sources
+  - doesnt allow expensive queries (avoid DoS)
+  - does not allow recursive queries
+  - does not allow arbitrary search conditions
+- server doesn't need to know which attributes the client needs, client just requests what it wants
+- GraphQL accepts larger response sizes in order to make it simpler to query
+- GraphQL query might look like a document and have graph in its name but it can be implemented on top of any type of database
+  - relational, document, graph
 
 ## Event Sourcing and CQRS
+- 
+
 ## DataFrames, Matrices, and Arrays
 ## Summary
 
