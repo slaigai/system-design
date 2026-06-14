@@ -227,9 +227,72 @@
 - in practice, defining good SLOs and SLAs is not straightforward
 
 ## Reliability and Fault Tolerance
-## Fault Tolerance
-## Hardware and Software Faults
-## Humans and Reliability
+- app performs the function as the user expected
+- app can tolerate the user making mistakes or using the software in unexpected ways
+- performance is good enough for the required use case under expected load and data volume
+- system prevents any unauthorized access and abuse
+- reliability: system continues working correctly even when things go wrong
+- fault: part of a system stops working correctly (doesn't mean the system has failed necessarily)
+- failure: whole system stops providing the required service to the user (does not meet SLO)
+
+### Fault Tolerance
+- fault-tolerant: continues providing the required service to users even when faults occur
+- single point of failure (SPOF): system cannot tolerate a certain part becoming faulty. fault in that one part becomes a failure of the whole system
+- fault tolerance is always limited to a certain number of certain types of faults
+  - e.g. can tolerate a max of 1 out of 3 nodes crashing at a time
+  - wouldnt make sense to tolerate any number of faults
+  - if all nodes crash, it cannot possibly be tolerated
+- fault injection: deliberately triggering faults (e.g. randomly killing processes)
+- chaos engineering: using fault injection to improve tolerance in fault tolerance mechanisms
+- we ideally want to tolerate faults. however, preventing them can be even better (e.g. security)
+
+### Hardware and Software Faults
+- 2-5% of magnetic hard drives fail per year. on average with 10,000 disks, one failure per day
+- 0.5-1% of SSDs fail per year
+- CPU manufacturing defects
+- RAM corruption
+- data center smoking hole in the ground
+- hardware faults are part of normal system operation in large-scale systems
+- redundancy is most effective when component faults are independent, one fault doesnt change the likelihood of another
+- cloud focuses less on single machine reliability and more on service high availability by tolerating nodes at the software level
+  - availability zones: resources physically colocated, resources in same place are more likely to fail at the same time (compared to geographically separated resources)
+  - can have one datacenter take over when another fails
+- rolling restart: multi-node fault-tolerant system doesn't require downtime for maintenance/upgrades
+- software faults are often highly correlated
+  - common for many nodes to run the same software, therefore having the same bugs
+  - tend to be a higher cause of failures than hardware
+- latent faults: bugs that lie dormant until certain unusual specific circumstances arise.
+  - reveals that the software is making some kind of assumption about its environment
+  - even if assumption is usually true, it can eventually stop being true for some reason
+- impossible to eliminate software faults but can try
+  - critical thinking assumptions and interactions in the system
+  - thorough testing
+  - process isolation
+  - allowing processes to crash and restart
+  - avoiding feedback loops such as retry storms
+  - observing prod behavior
+
+### Humans and Reliability
+- humans make errors
+- config changes by operators account for the vast majority of failures
+- blaming people for mistakes is counterproductive.
+  - What we call “human error” is not really the cause of an incident, but rather a symptom of a problem with the sociotechnical system in which people are trying their best to do their jobs
+  - Often complex systems have emergent behavior, in which unexpected interactions between components may also lead to failures
+- minimizing human mistakes
+  - thorough testing
+  - rollback mechanisms
+  - gradual rollouts
+  - detailed and clear monitoring
+  - observability tools for diagnosing prod issues
+  - well-designed interfaces that encourage the "right-thing" and discourage the "wrong-thing"
+- practically, can't have it all. it's a business
+  - organizations often prioritize revenue-generating activities over measures that increase their systems’ resilience against mistakes.
+  - Given a choice between more features and more testing, many organizations understandably choose features.
+  - Then, when a preventable mistake inevitably occurs, blaming the person who made the mistake does not make sense
+  - the problem is the organization’s priorities.
+- blameless postmortems: everyone invited to share full details without fear of punishment, prevents similar problems in the future
+  - may uncover need to change business priorities, invest in certain areas, change incentives, or bring another systemic issue to management's attention
+
 ## Scalability
 ## Understanding Load
 ## Shared-Memory, Shared-Disk, and Shared-Nothing Architectures
