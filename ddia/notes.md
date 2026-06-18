@@ -823,6 +823,8 @@ RETURN person.name
   - leveld compaction: keeps each level at a certain size. more efficient for reads, fewer SSTables to read
 
 ### B-Trees
+- 
+
 ### Comparing B-Trees and LSM-Trees
 ### Multicolumn and Secondary Indexes
 ### Storing Values Within the Index
@@ -965,9 +967,119 @@ RETURN person.name
 ## Summary
 
 # 12. Stream Processing
+- Batch processing assumes input is bounded, finite size
+- Reality: much data is unbounded, arrives over time
+- Batch handles unbounded data by artificially dividing data into chunks of fixed duration (day, hour)
+- Batch introduces delays, daily batch produces results a day later
+- Move toward more frequent processing all the way to processing every single event
+- Stream: data that is incrementally made available over time
+- Event stream: process events that arrive over time as they come in
+
 ## Transmitting Event Streams
-## Messaging Systems
-## Log-Based Message Brokers
+- Batch generally processes files
+- Streaming works on small, self-contained, immutable objects. Something that happens at a point in time
+- Event could be an action like taking a look at a page, making a purchase
+- Events can be encoded in whatever format
+- In batch, a file is written once and potentially read by multiple jobs
+- In streaming, an event is generated once (by producer) and processed by multiple consumers
+- In streaming, related events are usually grouped together in a topic or stream
+- Technically, DBs can connect producers to consumers
+- Polling becomes expensive for low latency continuous processing using a DB, DB sometimes not designed for this usage. Can be expensive
+- More polling, more overhead. Better to notify consumers when events appear
+- RDBMS have triggers that can react to a change but limited in what they can do
+- Specialized tools were developed for delivering event notifications
+
+### Messaging Systems
+- messaging system: producer sends a message containing an event, which is pushed to consumers
+- In general, messaging system allows one producer to connect to multiple senders
+- Usually two modes of operation
+  - a queue, message goes to one of the consumers that are listening
+  - a topic, messge goes to all of the subscribers that are listening
+- Publish / subscribe is related to topics
+- what if producers send messages faster than consumers can process them?
+  - 3 options: drop messages, buffer messages in a queue, apply backpressure (aka flow control, blocks producer from sending more messages)
+- Does buffer not fitting in memory trigger a crash or a write to disk?
+  - Disk access can affect performance
+  - What happens when run out of disk space?
+- What happens if nodes crash or temporarily go offline?
+  - Any messages lost?
+  - Durability (writing to disk) and replication (redundant copies for availability) have a cost
+  - Sometimes message loss is an acceptable trade off
+- Nice property of batch processing systems is they provide a strong reliability guyarantee
+  - Failed tasks are automatically retried
+  - Partial output from failed tasks are automatically discarded
+  - Output is the same as if no failures occurred
+  - Simplifies the programming model
+- Some messaging systems use direct network communication between producer and consumer
+  - UDP multicast
+    - widely used in financial industry for stock market feeds where low latency is important
+    - UDP itself is unreliable
+    - Application level protocols can recover lost packets (producer remembers packets it sent so it can resend them on demand)
+  - Brokerless messaging libraries
+    - ZeroMQ, nanomsg
+    - Pubsub implemented over TCP or IP multicast
+  - Metrics collection agents
+    - StatsD
+    - Use unreliable UDP messaging to collect metrics from all machines on a network and monitor them
+    - Metrics are best approximate value
+  - Direct HTTP or RPC requests
+    - Service exposed on a netowrk, producers make direct requests to consumer
+    - This is the idea behind webhooks (callback URL of one service is registered with another service, called when an event happens)
+- Direct messaging systems generally require application code to be aware of the possibility of message loss
+  - The faults they can tolerate are quite limited
+  - Even if protocols detect and retransmit packets, generally assumes producers and consumers are constantly online
+  - If consumer is offline, can miss messages sent while unreachable
+  - If producer crashes and loses the buffer, cannot retry
+- Message broker (aka message queue): a kind of database optimized for handling message streams
+  - Producers write messages to the broker
+  - Broker delivers messages to consumsers
+- Centralizing data on the broker allows clients (producers, consumers) to come and go (connect, disconnect).
+- Durability handled by the broker rather than producer
+- Some brokers only keep messages in memory, others write to disk
+- Durability prevents messages getting lost on crash
+- Can generally allow unbounded queueing if faced with slow consumers
+- Producer synchronously writes to broker and waits for confirmation that it wrote, consumers are asynchronous and can process whenever
+- Some message brokers can do 2PC (two phase commit) using XA or JTA
+  - DBs usually keep data until explicitly deleted
+  - Some message brokers automatically delete a message when it has successfully been delivered to consumers
+  - Message brokers that quickly delete messages assumer their working set is small (short queues)
+  - DBs often support secondary indexes for searching, message brokers support subscribing to a subset of topics matching a pattern
+  - Message brokers dont support arbitrary queries, dont allow message updates after they're sent
+- Standards for message brokers: JMS, AMQP
+- Two main patterns for multiple consumers
+  - Load balancing
+    - each message is delivered to one of the consumers
+    - Consumers share in processing the messages on the topic
+    - Broker assigns messages to consumers how it sees fit
+    - Useful when messages are expensive to process
+    - Can add consumers to parallelize the processing
+  - Fan out
+    - Each message is discovered by all consumers
+    - Allows several independent consumers to each receive the same broadcast of messages without affecting one another
+- Kafka combines both patterns
+  - When a consumer group subscribes to a topic, each message is sent to one of the consumers in the group (load balance within one consumer group)
+  - When two consumer groups subscribe to the same topic, each message is sent to one consumer in each group (fan out across consumer groups)
+- Consumers can crash at any time, broker can deliver  message to consumer but consumer never processes it
+- Message brokers use acknowledgements to ensure messages dont get lost
+  - Consumer must explicitly tell broker that it's finished processing a message so broker can remove it from the queue
+  - If no ack received by broker, assumes message was not processed.
+  - Can deliver message to another consumer
+  - Possible for no ack even though message was processed
+    - Handling this requires an atomic commit protocol or idempotency or exactly once semantics
+  - Consumers generally process messages in order sent by producers
+  - But if unacked messages redelivered, messages can be processed out of order
+  - Can use a separate queue per consumer to avoid out of order processing
+  - Message reordering is not a problem if messages are completely independent of each other
+  - Message reordering can be important if there are causal dependencies between messages
+- Redelivery can also waste resources, cause resource starvation, or permenantly block a stream
+  - Example: improperly serialized json, consumer crashes and restarts, redelivery keeps crashing the system
+  - If broker guarantees strong ordering, no further progress can be made, permanently blocked
+  - DLQ (dead letter queue) can handle this
+  - Any message in the queue is an error
+
+### Log-Based Message Brokers
+- 
+
 ## Databases and Streams
 ## Keeping Systems in Sync
 ## Change Data Capture
