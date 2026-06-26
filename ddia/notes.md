@@ -1078,7 +1078,60 @@ RETURN person.name
   - Any message in the queue is an error
 
 ### Log-Based Message Brokers
-- 
+- Message brokers usually quickly delete messages after they're delivered similar to transient network requests
+- DBs / filesystems usually store stuff forever until explicitly deleted
+- Key feature of batch processing is you can repeatedly experiment with processing steps without risk of damaging the input
+- In messaging, receiving a message is destructive if ack causes the message to be deleted from the broker, cannot run the same consumer again to get the same result
+  - New consumer typically starts receiving messages from after it was registered
+  - Prior messages cannot be recovered/replayed
+- Want a hybrid way to combine durable storage of DBs with low latency notification capabilities of messaging
+- Log-based messaging brokers combine durability and messaging
+- Log is append only sequence of records on disk
+- Broker keeps track of a log
+  - producer appends to the log
+  - consumer reads from the log sequentially
+  - if consumer reaches the end of the log, waits for new messages to be appended
+- To scale to hiugher throughput than a single disk can offer, log can be sharded
+  - shards hosted on different machines
+  - each shard is a separate log, can read/write to it independently from other shards
+  - topic dan be defined as a group of shards
+- Kafka calls shards within a topic "partitions"
+  - Broker assigns a monotonically increasing sequence number (offset) to every message
+  - Partition (shard) is append only
+  - Messages in a partition are totally ordered
+  - No ordering guarantee across different partitions
+- Different tech
+  - Log-based: Kafka, Amazon Kinesis Streams
+  - JMS-style: Google Pub/Sub
+- Log-based does not delete after ack
+  - Trivially supports fan out
+  - Consumers can read at their own pace indepentently of others (would be a problem if messages deleted after ack, not independent consumption)
+  - Load balance: can assign consumer groups to shard, completely independent of other consumer groups
+- Load balancing has downsides
+  - Number of nodes sharing the work of consuming a topic can be at most the number of log shards in that topic
+  - Messages within the same shard are delivered to the same node
+  - In general, single threaded processing of a shard is preferable
+  - Parallelism can be increased by using more shards
+  - If a single message is slow to process, it holds up processing of subsequent messages from that shard
+- Kafka
+  - topics: logical categories of messages
+  - partitions: subdivision of topics, can scale horizontally by splitting topic across multiple servers
+  - ordering: kafka only guarantees message order within a partition
+  - consumers: individual clients that read from kakfa
+  - consumer groups: collections fo consumers that read from the same topic(s)
+  - work distribution: kafka distributes a topic's partitions evenly across the consumers in a consumer group
+  - consumers can join/leave a consumer group any time
+  - within a single consumer group, a partition is read by only one consumer at a time
+  - prevents multiple consumers in the same client from processing the same message
+  - partition limits: number of partitions determines the max degree of parallelism in a consumer group
+  - if a topic has 5 partitions, a max of 5 consumers can be reading from the in a single consumer group
+  - dynamic rebalancing: adding or removing consumers in a group triggers a rebalance from kafka (redistribute partitions among remaining consumers)
+  - consumer groups are independent of other consumer groups, each reads at its own offsets
+  - every consumer group gets a full copy of all messages in that topic
+- Trade off analysis
+  - if messages are each expensive to process, want to parallelize on message-by-message basis, ordering not as important: JMS/AMQP is preferred
+  - if need high throughput, message is fast to process, message order is important: log based is better
+  - 
 
 ## Databases and Streams
 ## Keeping Systems in Sync
