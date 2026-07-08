@@ -1131,7 +1131,27 @@ RETURN person.name
 - Trade off analysis
   - if messages are each expensive to process, want to parallelize on message-by-message basis, ordering not as important: JMS/AMQP is preferred
   - if need high throughput, message is fast to process, message order is important: log based is better
-  - 
+- Consumer offsets
+  - all messages less than a consumer's offset have already been seen
+  - less for broker to track so less overhead
+  - can also batch from some offset, but resumes happen from the offset rather than the latest offset
+  - can increase throughput through batching
+  - possible to consume a message more than once
+  - Message broker acts like a leader database in replication, consumer acts like a follower database
+  - Consumer offset is like a log sequence number that database instances use for replication
+- Disk space usage
+  - Append only to log leads to running out of space
+  - Can occaisionally run log compaction, delete old segments of the log or move them to archive storage
+  - If slow consumer is so slow that it cant catch up to deleted segments, it could miss messages
+  - Log is basically a buffer but on disk, can be large
+  - Message brokers can now store logs in object storage as part of tiered storage
+- When consumers cant keep up with producers
+  - 3 options: drop messages, buffer, backpressure
+  - log-based approach is basically a fixed-sized buffer (on disk)
+  - If a consumer falls too far back, it only affects that one consumer
+- Replaying old messages
+  - Replaying from an old offset (like yesterday) is like batch processing the last day's values
+  - Batch is basically a repeatable transformation process that takes input data and makes derived data.
 
 ## Databases and Streams
 ## Keeping Systems in Sync
