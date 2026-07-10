@@ -1154,9 +1154,41 @@ RETURN person.name
   - Batch is basically a repeatable transformation process that takes input data and makes derived data.
 
 ## Databases and Streams
-## Keeping Systems in Sync
-## Change Data Capture
-## State, Streams, and Immutability
+- replication log is used in db replication, followers replay until they reach the same state
+
+### Keeping Systems in Sync
+- Usually no one system satisfies all of data storage, querying, and processing
+  - Usually combine multiple technologies
+  - OLTP DB for user requests
+  - Caches to speed up common requests
+  - full-text index for search queries
+  - data warehouse for analytics
+  - Each of these stores its own copy of data optimized for their use cases
+- Since the same data needs to be represented in multiple places, they need to be kept in sync
+  - Can periodically batch process the changes to the OLTP DB to derive all the other data
+- Can also replicate the write to multiple places but comes with major problems
+  - Race condition (concurrency): two writes to two DBs at the same time, can overwrite the earlier one
+  - Silently overwrite earlier values
+  - Partial failure (fault tolerance): one write fails, another succeeds
+  - Ensuring both succeed or fail together is the atomic commit problem (2PC) which is expensive
+
+### Change Data Capture
+- Usually replication logs are internal to a DB, not exposed as an API
+- CDC: extracting all writes to a DB so they can be replicated to other systems
+- Usually CDC exposed as a stream at the time events are written
+- Consumers are responsible for creating derived data
+- CDC is a mechanism for ensuring all changes made to the system of record are also reflected in derived data systems
+- CDC is usually asynch, system of record fires and forgets
+- Initial snapshot
+  - Keeping the log of all changes forever is impossible, need to take periodic snapshots and truncate log
+  - Some CDC tools handle snapshotting
+- Log compaction can be used to keep the most recent value for every key, supported by kafka
+  - Can reconstruct current state by reading the entire log from offset 0
+- API support for change streams
+  - 
+
+### State, Streams, and Immutability
+
 ## Processing Streams
 ## Uses of Stream Processing
 ## Reasoning About Time
